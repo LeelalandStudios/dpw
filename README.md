@@ -17,6 +17,22 @@ npm run dev
 
 Open the URL Vite prints (usually http://localhost:5173).
 
+## Deploy on Netlify
+
+The repo includes `netlify.toml` so Netlify runs `npm run build` and publishes the `dist` folder.
+
+**Site settings (should match automatically):**
+
+| Setting | Value |
+|---------|--------|
+| Build command | `npm run build` |
+| Publish directory | `dist` |
+| Node version | 20 or 22 |
+
+If you see a **blank page**, the site is usually serving the unbuilt app (browser 404 on `/src/main.jsx`). Trigger a new deploy after pushing `netlify.toml`, or set the publish directory to `dist` in the Netlify UI.
+
+**Do not** set publish directory to `.` or the repo root without a build step.
+
 ## Project layout
 
 - `src/data/scenario.js` — Characters, axis labels, and the sample scene script
