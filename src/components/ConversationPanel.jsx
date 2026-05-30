@@ -57,7 +57,7 @@ export default function ConversationPanel({ messages, waitingForAdvance }) {
 
       {waitingForAdvance && messages.length > 0 && (
         <footer className="shrink-0 border-t border-white/8 px-4 py-2 text-center text-xs text-[#8fa3b8]">
-          Tap continue below when you're ready for the next line
+          Tap Next when you're ready for the next line
         </footer>
       )}
     </section>

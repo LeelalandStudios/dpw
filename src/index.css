@@ -15,4 +15,9 @@ body {
     sans-serif;
   background: #0f1419;
   color: #e8edf2;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
 }

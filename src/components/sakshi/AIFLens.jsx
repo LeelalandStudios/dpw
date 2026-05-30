@@ -1,16 +1,24 @@
 import { AIF_ROWS } from "../../data/aifLens.js";
+import { isPrimaryPointer } from "../../utils/pointer.js";
 
 function LetterButton({ letter, selected, disabled, onSelect }) {
+  const handlePointerDown = (e) => {
+    if (disabled || !isPrimaryPointer(e)) return;
+    e.preventDefault();
+    onSelect(letter.id);
+  };
+
   return (
     <button
       type="button"
       disabled={disabled}
-      onClick={() => onSelect(letter.id)}
-      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition sm:h-10 sm:w-10 ${
+      onPointerDown={handlePointerDown}
+      className={`flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border-2 text-sm font-semibold transition touch-manipulation sm:h-12 sm:w-12 ${
         selected
           ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
-          : "border-[#2d4a3e] bg-white text-[#1a1a1a] hover:border-[#e67e22] disabled:opacity-50"
+          : "border-[#2d4a3e] bg-white text-[#1a1a1a] active:border-[#e67e22] disabled:opacity-50"
       }`}
+      style={{ WebkitTapHighlightColor: "transparent" }}
       aria-pressed={selected}
       aria-label={`Select ${letter.label}`}
     >

@@ -63,7 +63,7 @@ export default function SakshiSpace({
                 role="tab"
                 aria-selected={activeLens === lens.id}
                 onClick={() => setActiveLens(lens.id)}
-                className={`relative flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition sm:text-xs ${
+                className={`relative min-h-11 flex-1 rounded-md px-2 py-2.5 text-[10px] font-semibold transition touch-manipulation sm:text-xs ${
                   activeLens === lens.id
                     ? "bg-[#6b9fd4] text-[#0f1419]"
                     : "text-[#8fa3b8] hover:text-[#c5d4e3]"
@@ -84,7 +84,7 @@ export default function SakshiSpace({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         {activeLens === "quadrant" && (
           <div role="tabpanel">
             <QuadrantLens

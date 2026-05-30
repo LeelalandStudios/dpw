@@ -133,10 +133,10 @@ export default function App() {
   const primaryAction = useMemo(() => {
     if (isComplete) return null;
     if (kind === "message") {
-      return { label: "Continue", onClick: handleContinue, disabled: false };
+      return { onClick: handleContinue, disabled: false };
     }
     if (kind === "plot" && allLensesMarked) {
-      return { label: "Continue", onClick: advance, disabled: false };
+      return { onClick: advance, disabled: false };
     }
     if (kind === "plot") {
       const remaining = [];
@@ -144,14 +144,14 @@ export default function App() {
       if (!lensProgress.body) remaining.push("Body Rasa");
       if (!lensProgress.aif) remaining.push("AIF");
       return {
-        label: `Mark each lens: ${remaining.join(" · ")}`,
+        hint: `Mark each lens: ${remaining.join(" · ")}`,
         onClick: () => {},
         disabled: true,
       };
     }
     if (kind === "choice") {
       return {
-        label: "Nudge Jordan in Sakhi space",
+        hint: "Nudge Jordan in Sakhi space",
         onClick: () => {},
         disabled: true,
       };
@@ -181,13 +181,35 @@ export default function App() {
   return (
     <div key={sessionKey} className="flex min-h-full flex-col">
       <header className="shrink-0 border-b border-white/8 bg-[#0f1419] px-4 py-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-[#6b9fd4]">
-          Prototype
-        </p>
-        <h1 className="text-xl font-semibold text-[#e8edf2]">
-          {SAMPLE_SCENARIO.title}
-        </h1>
-        <p className="mt-0.5 text-sm text-[#8fa3b8]">{SAMPLE_SCENARIO.subtitle}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wider text-[#6b9fd4]">
+              Prototype
+            </p>
+            <h1 className="text-xl font-semibold text-[#e8edf2]">
+              {SAMPLE_SCENARIO.title}
+            </h1>
+          </div>
+
+          {primaryAction && (
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <button
+                type="button"
+                onClick={primaryAction.onClick}
+                disabled={primaryAction.disabled}
+                className="min-h-11 rounded-xl bg-[#6b9fd4] px-5 py-2.5 text-sm font-semibold text-[#0f1419] transition touch-manipulation enabled:hover:bg-[#8ab4e0] disabled:cursor-not-allowed disabled:bg-[#3a4f62] disabled:text-[#8fa3b8]"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+              >
+                Next
+              </button>
+              {primaryAction.disabled && primaryAction.hint && (
+                <p className="max-w-[11rem] text-right text-[10px] leading-snug text-[#8fa3b8] sm:max-w-xs sm:text-xs">
+                  {primaryAction.hint}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl min-h-0 flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-3 lg:items-stretch">
@@ -219,21 +241,6 @@ export default function App() {
           disabled={Boolean(choiceFeedback)}
         />
       </main>
-
-      {primaryAction && (
-        <footer className="shrink-0 border-t border-white/8 bg-[#0f1419] p-4">
-          <div className="mx-auto max-w-2xl">
-            <button
-              type="button"
-              onClick={primaryAction.onClick}
-              disabled={primaryAction.disabled}
-              className="w-full rounded-xl bg-[#6b9fd4] py-3.5 text-sm font-semibold text-[#0f1419] transition enabled:hover:bg-[#8ab4e0] disabled:cursor-not-allowed disabled:bg-[#3a4f62] disabled:text-[#8fa3b8]"
-            >
-              {primaryAction.label}
-            </button>
-          </div>
-        </footer>
-      )}
     </div>
   );
 }

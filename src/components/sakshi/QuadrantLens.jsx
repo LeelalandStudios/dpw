@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { CHART_AXES, QUADRANTS } from "../../data/scenario.js";
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
+import {
+  getNormalizedPoint,
+  isPrimaryPointer,
+} from "../../utils/pointer.js";
 
 function AxisLabel({ children, className = "" }) {
   return (
@@ -20,44 +20,57 @@ export default function QuadrantLens({ plots, onPlot, canRecord, marked }) {
   const [hover, setHover] = useState(null);
 
   const placeFromEvent = useCallback(
-    (clientX, clientY) => {
+    (event) => {
       if (!canRecord || !chartRef.current) return;
-      const rect = chartRef.current.getBoundingClientRect();
-      const x = clamp((clientX - rect.left) / rect.width, 0, 1);
-      const y = clamp((clientY - rect.top) / rect.height, 0, 1);
-      onPlot({ x, y });
+      const point = getNormalizedPoint(event, chartRef.current);
+      if (!point) return;
+      onPlot(point);
+      setHover(point);
     },
     [canRecord, onPlot],
   );
 
-  const handlePointer = (e) => {
+  const handlePointerDown = (e) => {
+    if (!isPrimaryPointer(e)) return;
     e.preventDefault();
-    const point = e.touches?.[0] ?? e;
-    placeFromEvent(point.clientX, point.clientY);
+    placeFromEvent(e);
+    try {
+      chartRef.current?.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
-  const handleMove = (e) => {
-    if (!chartRef.current || !canRecord) return;
-    const rect = chartRef.current.getBoundingClientRect();
-    const point = e.touches?.[0] ?? e;
-    setHover({
-      x: clamp((point.clientX - rect.left) / rect.width, 0, 1),
-      y: clamp((point.clientY - rect.top) / rect.height, 0, 1),
-    });
+  const handlePointerMove = (e) => {
+    if (!canRecord || !chartRef.current) return;
+    const point = getNormalizedPoint(e, chartRef.current);
+    if (point) setHover(point);
+  };
+
+  const handlePointerEnd = (e) => {
+    try {
+      chartRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
     <div className="flex flex-col">
       <div
         ref={chartRef}
-        role="img"
-        aria-label="Four quadrant matrix"
-        className={`relative mx-auto aspect-square w-full max-w-sm touch-none select-none rounded-xl ${
+        role="button"
+        tabIndex={canRecord ? 0 : -1}
+        aria-label="Four quadrant matrix. Tap to plot."
+        aria-disabled={!canRecord}
+        className={`relative mx-auto aspect-square w-full max-w-sm select-none rounded-xl touch-none ${
           canRecord ? "cursor-crosshair" : "cursor-default opacity-90"
         }`}
-        onClick={handlePointer}
-        onPointerDown={handlePointer}
-        onPointerMove={handleMove}
+        style={{ WebkitTapHighlightColor: "transparent", touchAction: "none" }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
         onPointerLeave={() => setHover(null)}
       >
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 overflow-hidden rounded-xl border border-white/12">

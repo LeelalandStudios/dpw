@@ -26,7 +26,6 @@ export const QUADRANTS = [
 export const SAMPLE_SCENARIO = {
   id: "late-plans",
   title: "The changed plans",
-  subtitle: "Karta watches the scene · Sakshi tracks your feeling · Sakhi nudges Jordan.",
   steps: [
     {
       type: "message",
