@@ -12,17 +12,23 @@ const LENSES = [
 export default function SakshiSpace({
   prompt,
   highlight,
-  canRecord,
+  sakshiCheckpoint,
+  lensProgress,
   plots,
   bodyMarks,
   aifSelection,
   onQuadrantPlot,
   onBodyMark,
   onClearBodyMarks,
-  sakshiCheckpoint,
   onAifSelect,
 }) {
   const [activeLens, setActiveLens] = useState("quadrant");
+
+  const markedCount = [
+    lensProgress.quadrant,
+    lensProgress.body,
+    lensProgress.aif,
+  ].filter(Boolean).length;
 
   return (
     <section
@@ -37,28 +43,44 @@ export default function SakshiSpace({
         {prompt && (
           <p className="mt-1 text-sm text-[#c5d4e3]">{prompt}</p>
         )}
+        {sakshiCheckpoint && (
+          <p className="mt-1 text-xs text-[#6b9fd4]">
+            Mark all 3 lenses ({markedCount}/3)
+          </p>
+        )}
 
         <div
           className="mt-3 flex gap-1 rounded-lg bg-[#0f1419] p-1"
           role="tablist"
           aria-label="Sakshi lenses"
         >
-          {LENSES.map((lens) => (
-            <button
-              key={lens.id}
-              type="button"
-              role="tab"
-              aria-selected={activeLens === lens.id}
-              onClick={() => setActiveLens(lens.id)}
-              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition sm:text-xs ${
-                activeLens === lens.id
-                  ? "bg-[#6b9fd4] text-[#0f1419]"
-                  : "text-[#8fa3b8] hover:text-[#c5d4e3]"
-              }`}
-            >
-              {lens.label}
-            </button>
-          ))}
+          {LENSES.map((lens) => {
+            const done = lensProgress[lens.id];
+            return (
+              <button
+                key={lens.id}
+                type="button"
+                role="tab"
+                aria-selected={activeLens === lens.id}
+                onClick={() => setActiveLens(lens.id)}
+                className={`relative flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition sm:text-xs ${
+                  activeLens === lens.id
+                    ? "bg-[#6b9fd4] text-[#0f1419]"
+                    : "text-[#8fa3b8] hover:text-[#c5d4e3]"
+                }`}
+              >
+                {lens.label}
+                {done && (
+                  <span
+                    className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ${
+                      activeLens === lens.id ? "bg-[#0f1419]" : "bg-[#4a8f6a]"
+                    }`}
+                    aria-label="Marked"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </header>
 
@@ -68,7 +90,8 @@ export default function SakshiSpace({
             <QuadrantLens
               plots={plots}
               onPlot={onQuadrantPlot}
-              canRecord={canRecord}
+              canRecord={sakshiCheckpoint}
+              marked={lensProgress.quadrant}
             />
           </div>
         )}
@@ -80,6 +103,7 @@ export default function SakshiSpace({
               onMark={onBodyMark}
               onClearMarks={onClearBodyMarks}
               canRecord={sakshiCheckpoint}
+              marked={lensProgress.body}
             />
           </div>
         )}
@@ -89,7 +113,8 @@ export default function SakshiSpace({
             <AIFLens
               selection={aifSelection}
               onSelect={onAifSelect}
-              canRecord={canRecord}
+              canRecord={sakshiCheckpoint}
+              marked={lensProgress.aif}
             />
           </div>
         )}

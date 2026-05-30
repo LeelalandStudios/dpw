@@ -89,7 +89,7 @@ function RowLetters({ row, selectedId, canRecord, onSelect }) {
   );
 }
 
-export default function AIFLens({ selection, onSelect, canRecord }) {
+export default function AIFLens({ selection, onSelect, canRecord, marked }) {
   const selectedId = selection?.letterId ?? null;
 
   return (
@@ -139,9 +139,9 @@ export default function AIFLens({ selection, onSelect, canRecord }) {
       </div>
 
       <p className="mt-3 text-center text-xs text-[#8fa3b8]">
-        {canRecord
-          ? "Select one letter for this moment"
-          : "Opens at Sakshi checkpoints"}
+        {!canRecord && "Opens at Sakshi checkpoints"}
+        {canRecord && marked && "✓ Marked — switch tab if other lenses need you"}
+        {canRecord && !marked && "Select one letter for this lens"}
       </p>
     </div>
   );

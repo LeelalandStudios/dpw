@@ -9,13 +9,20 @@ function getStepKind(step) {
   return step?.type ?? "message";
 }
 
+function getLensProgress(stepIndex, plots, bodyMarks, aifPicks) {
+  return {
+    quadrant: plots.some((p) => p.stepIndex === stepIndex),
+    body: bodyMarks.some((m) => m.stepIndex === stepIndex),
+    aif: aifPicks.some((p) => p.stepIndex === stepIndex),
+  };
+}
+
 export default function App() {
   const [stepIndex, setStepIndex] = useState(0);
   const [messages, setMessages] = useState([]);
   const [plots, setPlots] = useState([]);
   const [bodyMarks, setBodyMarks] = useState([]);
   const [aifPicks, setAifPicks] = useState([]);
-  const [sakshiRecordedStep, setSakshiRecordedStep] = useState(null);
   const [nudges, setNudges] = useState([]);
   const [choiceFeedback, setChoiceFeedback] = useState(null);
   const [sessionKey, setSessionKey] = useState(0);
@@ -26,24 +33,18 @@ export default function App() {
 
   const waitingForAdvance = kind === "message";
   const sakshiCheckpoint = kind === "plot";
-  const canRecordSakshi = sakshiCheckpoint && sakshiRecordedStep !== stepIndex;
   const showChoice = kind === "choice" && !choiceFeedback;
   const isComplete = kind === "end";
 
   const plotPrompt = kind === "plot" ? currentStep.prompt : null;
   const currentAifPick = aifPicks.find((p) => p.stepIndex === stepIndex) ?? null;
+  const lensProgress = getLensProgress(stepIndex, plots, bodyMarks, aifPicks);
+  const allLensesMarked =
+    lensProgress.quadrant && lensProgress.body && lensProgress.aif;
 
   const advance = useCallback(() => {
     setStepIndex((i) => Math.min(i + 1, steps.length - 1));
   }, [steps.length]);
-
-  const recordSakshi = useCallback(
-    (autoAdvance = true) => {
-      setSakshiRecordedStep(stepIndex);
-      if (autoAdvance) setTimeout(advance, 400);
-    },
-    [advance, stepIndex],
-  );
 
   const handleContinue = () => {
     if (kind !== "message") return;
@@ -57,12 +58,11 @@ export default function App() {
 
   const handleQuadrantPlot = useCallback(
     ({ x, y }) => {
-      if (!canRecordSakshi) return;
+      if (!sakshiCheckpoint) return;
       const id = `${stepIndex}-q-${Date.now()}`;
       setPlots((prev) => [...prev, { id, x, y, stepIndex }]);
-      recordSakshi(true);
     },
-    [canRecordSakshi, recordSakshi, stepIndex],
+    [sakshiCheckpoint, stepIndex],
   );
 
   const handleBodyMark = useCallback(
@@ -73,28 +73,23 @@ export default function App() {
         ...prev,
         { id, x, y, stepIndex, color, stroke, radius },
       ]);
-      if (canRecordSakshi) recordSakshi(false);
     },
-    [canRecordSakshi, recordSakshi, sakshiCheckpoint, stepIndex],
+    [sakshiCheckpoint, stepIndex],
   );
 
   const handleClearBodyMarks = useCallback(() => {
     setBodyMarks((prev) => prev.filter((m) => m.stepIndex !== stepIndex));
-    if (sakshiRecordedStep === stepIndex) {
-      setSakshiRecordedStep(null);
-    }
-  }, [sakshiRecordedStep, stepIndex]);
+  }, [stepIndex]);
 
   const handleAifSelect = useCallback(
     (letterId) => {
-      if (!canRecordSakshi) return;
+      if (!sakshiCheckpoint) return;
       setAifPicks((prev) => [
         ...prev.filter((p) => p.stepIndex !== stepIndex),
         { stepIndex, letterId },
       ]);
-      recordSakshi(true);
     },
-    [canRecordSakshi, recordSakshi, stepIndex],
+    [sakshiCheckpoint, stepIndex],
   );
 
   const handleChoice = (option) => {
@@ -130,7 +125,6 @@ export default function App() {
     setPlots([]);
     setBodyMarks([]);
     setAifPicks([]);
-    setSakshiRecordedStep(null);
     setNudges([]);
     setChoiceFeedback(null);
     setSessionKey((k) => k + 1);
@@ -141,12 +135,16 @@ export default function App() {
     if (kind === "message") {
       return { label: "Continue", onClick: handleContinue, disabled: false };
     }
-    if (kind === "plot" && sakshiRecordedStep === stepIndex) {
+    if (kind === "plot" && allLensesMarked) {
       return { label: "Continue", onClick: advance, disabled: false };
     }
     if (kind === "plot") {
+      const remaining = [];
+      if (!lensProgress.quadrant) remaining.push("4 Quadrant");
+      if (!lensProgress.body) remaining.push("Body Rasa");
+      if (!lensProgress.aif) remaining.push("AIF");
       return {
-        label: "Record in any Sakshi lens to continue",
+        label: `Mark each lens: ${remaining.join(" · ")}`,
         onClick: () => {},
         disabled: true,
       };
@@ -161,11 +159,11 @@ export default function App() {
     return null;
   }, [
     advance,
+    allLensesMarked,
     handleContinue,
     isComplete,
     kind,
-    sakshiRecordedStep,
-    stepIndex,
+    lensProgress,
   ]);
 
   if (isComplete) {
@@ -200,15 +198,15 @@ export default function App() {
 
         <SakshiSpace
           prompt={plotPrompt}
-          highlight={kind === "plot"}
-          canRecord={canRecordSakshi}
+          highlight={sakshiCheckpoint}
+          sakshiCheckpoint={sakshiCheckpoint}
+          lensProgress={lensProgress}
           plots={plots}
           bodyMarks={bodyMarks}
           aifSelection={currentAifPick}
           onQuadrantPlot={handleQuadrantPlot}
           onBodyMark={handleBodyMark}
           onClearBodyMarks={handleClearBodyMarks}
-          sakshiCheckpoint={sakshiCheckpoint}
           onAifSelect={handleAifSelect}
         />
 

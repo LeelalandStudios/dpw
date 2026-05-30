@@ -22,6 +22,7 @@ export default function BodyRasaLens({
   onMark,
   onClearMarks,
   canRecord,
+  marked,
 }) {
   const svgRef = useRef(null);
   const drawingRef = useRef(false);
@@ -207,9 +208,9 @@ export default function BodyRasaLens({
       </svg>
 
       <p className="text-center text-xs text-[#8fa3b8]">
-        {canRecord
-          ? "Paint on the body with your chosen rasa color"
-          : "Opens at Sakshi checkpoints"}
+        {!canRecord && "Opens at Sakshi checkpoints"}
+        {canRecord && marked && "✓ Marked — you can keep painting or switch lenses"}
+        {canRecord && !marked && "Paint on the body with your chosen rasa color"}
       </p>
     </div>
   );

@@ -15,7 +15,7 @@ function AxisLabel({ children, className = "" }) {
   );
 }
 
-export default function QuadrantLens({ plots, onPlot, canRecord }) {
+export default function QuadrantLens({ plots, onPlot, canRecord, marked }) {
   const chartRef = useRef(null);
   const [hover, setHover] = useState(null);
 
@@ -112,9 +112,9 @@ export default function QuadrantLens({ plots, onPlot, canRecord }) {
       </div>
 
       <p className="mt-3 text-center text-xs text-[#8fa3b8]">
-        {canRecord
-          ? "Tap the matrix to mark this moment"
-          : "Opens at Sakshi checkpoints"}
+        {!canRecord && "Opens at Sakshi checkpoints"}
+        {canRecord && marked && "✓ Marked — switch tab to Body Rasa or AIF"}
+        {canRecord && !marked && "Tap the matrix to mark this lens"}
       </p>
     </div>
   );
